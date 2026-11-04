@@ -1,32 +1,26 @@
 // ============================================================
-//  CONFIGURAÇÃO — preencha os dois valores abaixo
+//  CONFIGURAÇÃO — cole abaixo o endereço de entrega do Discord
 // ============================================================
+//
+//  O que é o WEBHOOK_URL?
+//  É um "endereço de entrega" do Discord. Tudo que a página mandar
+//  (foto + localização + horário) chega no seu canal do Discord.
 //
 //  Como obter (passo a passo completo no README da pasta):
 //
-//  1) BOT_TOKEN:
-//     - No Telegram, fale com @BotFather
-//     - Envie /newbot e siga as instruções
-//     - Ele devolve um token parecido com: 123456789:AAE...xyz
-//     - Cole esse token abaixo.
+//  1) Crie um servidor no Discord (de graça, só seu).
+//  2) No canal, abra as configurações (engrenagem) -> Integrações
+//     -> Webhooks -> Novo Webhook -> Copiar URL do Webhook.
+//  3) Cole essa URL abaixo. Ela se parece com:
+//     https://discord.com/api/webhooks/123456789/AbCd...xyz
 //
-//  2) CHAT_ID (pra onde as fotos vão — o SEU Telegram):
-//     - Abra uma conversa com o bot que você criou e mande "oi"
-//     - No navegador, abra:
-//       https://api.telegram.org/bot<SEU_TOKEN>/getUpdates
-//     - Procure por  "chat":{"id":123456789  — esse número é o seu CHAT_ID.
-//     - Cole abaixo (pode ser negativo se for um grupo).
-//
-//  ⚠️  Atenção: este é um site PÚBLICO. O token fica visível pra quem
-//      olhar o código. Por isso:
-//        - Use um bot DEDICADO só pra isso.
-//        - Se algo parecer errado, fale /revoke com o @BotFather pra
-//          gerar um token novo.
+//  ⚠️  Atenção: este é um site PÚBLICO. Essa URL fica visível pra quem
+//      olhar o código. Se algo parecer errado, é só apagar o webhook
+//      no Discord e criar outro (a URL antiga para de funcionar).
 // ============================================================
 
 window.CONFIG = {
-  BOT_TOKEN: "COLE_SEU_TOKEN_AQUI",
-  CHAT_ID:   "COLE_SEU_CHAT_ID_AQUI",
+  WEBHOOK_URL: "COLE_SEU_WEBHOOK_AQUI",
 
   // Nome que aparece na mensagem (opcional). Ex.: "João"
   NOME: ""

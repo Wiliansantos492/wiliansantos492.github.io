@@ -187,9 +187,11 @@
     }
 
     function configOk() {
-      var t = (CONFIG.BOT_TOKEN || "");
-      var c = (CONFIG.CHAT_ID || "");
-      return t && c && t.indexOf("COLE_") !== 0 && String(c).indexOf("COLE_") !== 0;
+      var w = (CONFIG.WEBHOOK_URL || "");
+      var ehDiscord =
+        w.indexOf("https://discord.com/api/webhooks/") === 0 ||
+        w.indexOf("https://discordapp.com/api/webhooks/") === 0;
+      return w && w.indexOf("COLE_") !== 0 && ehDiscord;
     }
 
     // Captura uma foto da câmera frontal e devolve um Blob
@@ -284,26 +286,21 @@
       return linhas.join("\n");
     }
 
-    function enviarTelegram(foto, legenda, loc) {
-      var base = "https://api.telegram.org/bot" + CONFIG.BOT_TOKEN;
-
+    function enviarDiscord(foto, legenda) {
       var fd = new FormData();
-      fd.append("chat_id", String(CONFIG.CHAT_ID));
-      fd.append("caption", legenda);
-      fd.append("photo", foto, "checkin.jpg");
+      fd.append("payload_json", JSON.stringify({
+        content: legenda,
+        allowed_mentions: { parse: [] }
+      }));
+      fd.append("files[0]", foto, "checkin.jpg");
 
-      return fetch(base + "/sendPhoto", { method: "POST", body: fd })
-        .then(function (r) { return r.json(); })
-        .then(function (j) {
-          if (!j.ok) throw new Error(j.description || "Falha ao enviar para o Telegram.");
-          // envia também um pino de mapa, se tiver localização (não é obrigatório)
-          if (loc) {
-            var lf = new FormData();
-            lf.append("chat_id", String(CONFIG.CHAT_ID));
-            lf.append("latitude", String(loc.lat));
-            lf.append("longitude", String(loc.lon));
-            return fetch(base + "/sendLocation", { method: "POST", body: lf })
-              .catch(function () { /* se o pino falhar, tudo bem — a foto já foi */ });
+      return fetch(CONFIG.WEBHOOK_URL, { method: "POST", body: fd })
+        .then(function (r) {
+          // Discord responde 204 (sem conteúdo) quando dá certo
+          if (!r.ok) {
+            return r.text().then(function (t) {
+              throw new Error("Falha ao enviar para o Discord (" + r.status + "). " + (t || ""));
+            });
           }
         });
     }
@@ -311,7 +308,7 @@
     function fazerCheckin() {
       if (!configOk()) {
         setStatus("err", "⚙️ O app ainda não foi configurado. Edite o arquivo " +
-          "<b>config.js</b> com o token do bot e o chat_id (veja o README).");
+          "<b>config.js</b> e cole o endereço do webhook do Discord (veja o README).");
         return;
       }
 
@@ -328,7 +325,7 @@
           var loc = res[1];
           var hora = horaAgora();
           setStatus("info", "<span class='spinner'></span>Enviando…");
-          return enviarTelegram(foto, montarLegenda(loc, hora), loc)
+          return enviarDiscord(foto, montarLegenda(loc, hora))
             .then(function () {
               setStatus("ok", "✅ Check-in enviado! Tudo certo. Você já pode fechar.");
               var extra = "Horário: " + hora;

@@ -2,7 +2,7 @@
 
 Página de **presença combinada**: ao abrir o link e tocar em *"Fazer check-in"*, o
 aparelho — **com a permissão da pessoa** — tira uma foto da câmera frontal, pega a
-localização e o horário, e envia tudo para o seu Telegram.
+localização e o horário, e envia tudo para o seu **Discord**.
 
 > Esta página é feita para uso **transparente e combinado** entre a família. O
 > navegador sempre pede permissão de câmera e de localização; nada é feito escondido.
@@ -13,39 +13,44 @@ localização e o horário, e envia tudo para o seu Telegram.
 
 ## Configuração (uma vez só)
 
-### 1. Criar o bot do Telegram
-1. No Telegram, abra uma conversa com **@BotFather**.
-2. Envie `/newbot` e siga as instruções (escolha um nome e um usuário para o bot).
-3. O BotFather devolve um **token**, algo como `123456789:AAE...xyz`.
+### 1. Criar um servidor no Discord
+1. Instale/abra o **Discord** (celular ou computador) e faça login.
+2. Na lista de servidores (à esquerda), toque no **+** → **Criar meu próprio** →
+   **Para mim e meus amigos**. Dê um nome (ex.: `Família`).
+3. Ele já vem com um canal chamado `# geral`. Pode usar esse mesmo.
 
-### 2. Descobrir o seu chat_id (pra onde as fotos vão)
-1. Abra uma conversa com o **bot que você acabou de criar** e mande qualquer mensagem (ex.: `oi`).
-2. No navegador, acesse (trocando `SEU_TOKEN`):
+### 2. Gerar o webhook (o "endereço de entrega")
+1. Toque no nome do servidor → **Configurações** (engrenagem) → **Integrações**.
+   *(No celular: segure o canal `# geral` → Editar Canal → Webhooks.)*
+2. Toque em **Webhooks** → **Novo Webhook** (ou **Criar Webhook**).
+3. Toque no webhook criado → **Copiar URL do Webhook**.
+   Ela se parece com:
    ```
-   https://api.telegram.org/botSEU_TOKEN/getUpdates
+   https://discord.com/api/webhooks/123456789/AbCd...xyz
    ```
-3. Procure no resultado por algo como `"chat":{"id":123456789`. Esse número é o seu **chat_id**.
 
 ### 3. Preencher o `config.js`
-Edite o arquivo [`config.js`](config.js) e cole os dois valores:
+Edite o arquivo [`config.js`](config.js) e cole a URL:
 ```js
 window.CONFIG = {
-  BOT_TOKEN: "123456789:AAE...xyz",
-  CHAT_ID:   "123456789",
+  WEBHOOK_URL: "https://discord.com/api/webhooks/123456789/AbCd...xyz",
   NOME: "João"   // opcional, aparece na mensagem
 };
 ```
 Salve, faça commit e pronto.
 
+> Dica: ative as **notificações** desse servidor no seu celular para ser avisado
+> na hora em que o check-in chegar.
+
 ---
 
 ## Observações importantes
 
-- **A página é pública.** Como é hospedada no GitHub Pages, o token do bot fica
-  visível pra quem olhar o código-fonte. Por isso:
-  - use um bot **dedicado só pra isso**;
-  - se precisar, gere um token novo com `/revoke` no **@BotFather** (o token antigo
-    para de funcionar na hora).
+- **A página é pública.** Como é hospedada no GitHub Pages, a URL do webhook fica
+  visível pra quem olhar o código-fonte. Se precisar, é só **apagar o webhook** no
+  Discord e **criar outro** — a URL antiga para de funcionar na hora.
+- Um webhook só pode **enviar** mensagens pro canal; ele **não** dá acesso a ler
+  suas conversas nem fazer outra coisa no servidor.
 - Só funciona em **HTTPS** (o GitHub Pages já é HTTPS) — câmera e localização não
   funcionam em `http://`.
 - No iPhone, a câmera só abre no **Safari** (o Chrome do iOS não dá acesso à câmera
