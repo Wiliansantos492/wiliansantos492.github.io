@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#2563eb">
+  <title>Check-in</title>
+  <style>
+    :root {
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --fg: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --brand: #2563eb;
+      --brand-strong: #1d4ed8;
+      --ok: #16a34a;
+      --ok-bg: #dcfce7;
+      --err: #dc2626;
+      --err-bg: #fee2e2;
+      --warn-bg: #fef9c3;
+      --warn-fg: #854d0e;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #0b1120;
+        --card: #111827;
+        --fg: #f1f5f9;
+        --muted: #94a3b8;
+        --border: #1f2a3c;
+        --brand: #3b82f6;
+        --brand-strong: #2563eb;
+        --ok: #4ade80;
+        --ok-bg: #052e16;
+        --err: #f87171;
+        --err-bg: #450a0a;
+        --warn-bg: #422006;
+        --warn-fg: #fde68a;
+      }
+    }
+    :root[data-theme="dark"] {
+      --bg: #0b1120; --card: #111827; --fg: #f1f5f9; --muted: #94a3b8;
+      --border: #1f2a3c; --brand: #3b82f6; --brand-strong: #2563eb;
+      --ok: #4ade80; --ok-bg: #052e16; --err: #f87171; --err-bg: #450a0a;
+      --warn-bg: #422006; --warn-fg: #fde68a;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 440px;
+      padding: 28px 24px 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.08);
+    }
+    h1 { font-size: 1.5rem; margin: 0 0 4px; }
+    .sub { color: var(--muted); margin: 0 0 20px; font-size: .95rem; line-height: 1.5; }
+    .explain {
+      background: var(--warn-bg);
+      color: var(--warn-fg);
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-size: .9rem;
+      line-height: 1.55;
+      margin-bottom: 20px;
+    }
+    .explain strong { font-weight: 700; }
+    .explain ul { margin: 8px 0 0; padding-left: 20px; }
+    .explain li { margin: 2px 0; }
+    button {
+      width: 100%;
+      border: none;
+      border-radius: 14px;
+      padding: 18px;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #fff;
+      background: var(--brand);
+      cursor: pointer;
+      transition: background .15s, transform .05s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button:hover:not(:disabled) { background: var(--brand-strong); }
+    button:active:not(:disabled) { transform: scale(.985); }
+    button:disabled { opacity: .55; cursor: default; }
+    .preview-wrap {
+      margin-top: 18px;
+      border-radius: 14px;
+      overflow: hidden;
+      display: none;
+      border: 1px solid var(--border);
+    }
+    .preview-wrap.show { display: block; }
+    video, canvas, img.shot {
+      width: 100%;
+      display: block;
+      background: #000;
+    }
+    canvas { display: none; }
+    .status {
+      margin-top: 18px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      font-size: .95rem;
+      line-height: 1.5;
+      display: none;
+    }
+    .status.show { display: block; }
+    .status.info { background: var(--bg); color: var(--muted); }
+    .status.ok { background: var(--ok-bg); color: var(--ok); font-weight: 600; }
+    .status.err { background: var(--err-bg); color: var(--err); font-weight: 600; }
+    .meta { margin-top: 14px; font-size: .85rem; color: var(--muted); line-height: 1.6; }
+    .meta a { color: var(--brand); }
+    .spinner {
+      display: inline-block; width: 16px; height: 16px; margin-right: 8px;
+      border: 2px solid currentColor; border-right-color: transparent;
+      border-radius: 50%; animation: spin .7s linear infinite; vertical-align: -3px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .foot { margin-top: 20px; text-align: center; font-size: .78rem; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1 id="title">Fazer check-in</h1>
+    <p class="sub" id="greeting">Toque no botão para avisar que está tudo bem.</p>
+
+    <div class="explain">
+      Ao tocar em <strong>“Fazer check-in”</strong>, com a sua permissão o aparelho vai:
+      <ul>
+        <li>📷 tirar <strong>uma foto</strong> da câmera frontal;</li>
+        <li>📍 pegar a sua <strong>localização</strong>;</li>
+        <li>🕐 registrar o <strong>horário</strong>.</li>
+      </ul>
+      Isso é enviado para o responsável. O navegador vai pedir sua permissão antes.
+    </div>
+
+    <button id="btn">Fazer check-in</button>
+
+    <div class="preview-wrap" id="previewWrap">
+      <video id="video" playsinline muted autoplay></video>
+      <img class="shot" id="shot" alt="" style="display:none">
+    </div>
+    <canvas id="canvas"></canvas>
+
+    <div class="status" id="status"></div>
+    <div class="meta" id="meta"></div>
+
+    <p class="foot">Página de presença da família · uso combinado</p>
+  </main>
+
+  <script src="config.js"></script>
+  <script>
+  (function () {
+    "use strict";
+
+    var btn = document.getElementById("btn");
+    var statusEl = document.getElementById("status");
+    var metaEl = document.getElementById("meta");
+    var video = document.getElementById("video");
+    var canvas = document.getElementById("canvas");
+    var shot = document.getElementById("shot");
+    var previewWrap = document.getElementById("previewWrap");
+    var greeting = document.getElementById("greeting");
+
+    var CONFIG = window.CONFIG || {};
+    var nome = (CONFIG.NOME || "").trim();
+    if (nome) {
+      greeting.textContent = "Oi, " + nome + "! Toque no botão para avisar que está tudo bem.";
+    }
+
+    function setStatus(kind, html) {
+      statusEl.className = "status show " + kind;
+      statusEl.innerHTML = html;
+    }
+
+    function configOk() {
+      var w = (CONFIG.WEBHOOK_URL || "");
+      var ehDiscord =
+        w.indexOf("https://discord.com/api/webhooks/") === 0 ||
+        w.indexOf("https://discordapp.com/api/webhooks/") === 0;
+      return w && w.indexOf("COLE_") !== 0 && ehDiscord;
+    }
+
+    // Captura uma foto da câmera frontal e devolve um Blob
+    function capturarFoto() {
+      return new Promise(function (resolve, reject) {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          reject(new Error("Este aparelho/navegador não permite acesso à câmera."));
+          return;
+        }
+        navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "user" }, audio: false
+        }).then(function (stream) {
+          video.srcObject = stream;
+          previewWrap.classList.add("show");
+
+          function finalizar() {
+            var w = video.videoWidth || 640;
+            var h = video.videoHeight || 480;
+            canvas.width = w;
+            canvas.height = h;
+            canvas.getContext("2d").drawImage(video, 0, 0, w, h);
+
+            // Mostra a foto tirada e desliga a câmera
+            shot.src = canvas.toDataURL("image/jpeg", 0.85);
+            shot.style.display = "block";
+            video.style.display = "none";
+            stream.getTracks().forEach(function (t) { t.stop(); });
+
+            canvas.toBlob(function (blob) {
+              if (blob) resolve(blob);
+              else reject(new Error("Não consegui gerar a foto."));
+            }, "image/jpeg", 0.85);
+          }
+
+          // espera a câmera estabilizar um instante
+          if (video.readyState >= 2) setTimeout(finalizar, 600);
+          else video.onloadedmetadata = function () { setTimeout(finalizar, 600); };
+        }).catch(function (err) {
+          if (err && (err.name === "NotAllowedError" || err.name === "SecurityError")) {
+            reject(new Error("Permissão de câmera negada. Toque de novo e permita o acesso."));
+          } else if (err && err.name === "NotFoundError") {
+            reject(new Error("Nenhuma câmera encontrada neste aparelho."));
+          } else {
+            reject(new Error("Não consegui abrir a câmera. " + (err && err.message ? err.message : "")));
+          }
+        });
+      });
+    }
+
+    // Pega a localização (não bloqueia o envio se falhar)
+    function pegarLocalizacao() {
+      return new Promise(function (resolve) {
+        if (!navigator.geolocation) { resolve(null); return; }
+        navigator.geolocation.getCurrentPosition(
+          function (pos) {
+            resolve({
+              lat: pos.coords.latitude,
+              lon: pos.coords.longitude,
+              acc: pos.coords.accuracy
+            });
+          },
+          function () { resolve(null); },
+          { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+        );
+      });
+    }
+
+    function horaAgora() {
+      var d = new Date();
+      try {
+        return d.toLocaleString("pt-BR", {
+          weekday: "short", day: "2-digit", month: "2-digit", year: "numeric",
+          hour: "2-digit", minute: "2-digit"
+        });
+      } catch (e) {
+        return d.toString();
+      }
+    }
+
+    function montarLegenda(loc, hora) {
+      var linhas = [];
+      linhas.push("✅ Check-in" + (nome ? " de " + nome : ""));
+      linhas.push("🕐 " + hora);
+      if (loc) {
+        var maps = "https://maps.google.com/?q=" + loc.lat + "," + loc.lon;
+        linhas.push("📍 " + loc.lat.toFixed(6) + ", " + loc.lon.toFixed(6) +
+                    " (±" + Math.round(loc.acc) + " m)");
+        linhas.push(maps);
+      } else {
+        linhas.push("📍 Localização indisponível (não autorizada ou sem sinal).");
+      }
+      return linhas.join("\n");
+    }
+
+    function enviarDiscord(foto, legenda) {
+      var fd = new FormData();
+      fd.append("payload_json", JSON.stringify({
+        content: legenda,
+        allowed_mentions: { parse: [] }
+      }));
+      fd.append("files[0]", foto, "checkin.jpg");
+
+      return fetch(CONFIG.WEBHOOK_URL, { method: "POST", body: fd })
+        .then(function (r) {
+          // Discord responde 204 (sem conteúdo) quando dá certo
+          if (!r.ok) {
+            return r.text().then(function (t) {
+              throw new Error("Falha ao enviar para o Discord (" + r.status + "). " + (t || ""));
+            });
+          }
+        });
+    }
+
+    function fazerCheckin() {
+      if (!configOk()) {
+        setStatus("err", "⚙️ O app ainda não foi configurado. Edite o arquivo " +
+          "<b>config.js</b> e cole o endereço do webhook do Discord (veja o README).");
+        return;
+      }
+
+      btn.disabled = true;
+      shot.style.display = "none";
+      video.style.display = "block";
+      setStatus("info", "<span class='spinner'></span>Pedindo permissões e preparando o check-in…");
+      metaEl.textContent = "";
+
+      // câmera e localização em paralelo
+      Promise.all([capturarFoto(), pegarLocalizacao()])
+        .then(function (res) {
+          var foto = res[0];
+          var loc = res[1];
+          var hora = horaAgora();
+          setStatus("info", "<span class='spinner'></span>Enviando…");
+          return enviarDiscord(foto, montarLegenda(loc, hora))
+            .then(function () {
+              setStatus("ok", "✅ Check-in enviado! Tudo certo. Você já pode fechar.");
+              var extra = "Horário: " + hora;
+              if (loc) {
+                extra += '<br>Local: <a target="_blank" rel="noopener" href="https://maps.google.com/?q=' +
+                  loc.lat + ',' + loc.lon + '">abrir no mapa</a>';
+              }
+              metaEl.innerHTML = extra;
+              btn.textContent = "Fazer novo check-in";
+              btn.disabled = false;
+            });
+        })
+        .catch(function (err) {
+          setStatus("err", "❌ " + (err && err.message ? err.message : "Algo deu errado."));
+          btn.disabled = false;
+        });
+    }
+
+    btn.addEventListener("click", fazerCheckin);
+  })();
+  </script>
+</body>
+</html>
